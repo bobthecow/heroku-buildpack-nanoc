@@ -1,8 +1,24 @@
 # Heroku buildpack for nanoc
 
-Compile and serve a nanoc site on Heroku:
+Compile and serve a nanoc site on Heroku.
 
+
+## Zero to nanoc in 25.4 seconds
+
+    gem install bundler nanoc
+    nanoc create_site hello-world
+    cd hello-world/
+    cat << EOF > Gemfile
+    source :rubygems
+    gem 'nanoc'
+    EOF
+    bundle install
+    git init
+    git add .
+    git commit -m "initial commit"
     heroku create -s cedar --buildpack https://github.com/bobthecow/heroku-buildpack-nanoc.git
+    git push heroku master
+
 
 ## License
 
