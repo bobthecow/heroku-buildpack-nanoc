@@ -18,7 +18,8 @@ BUILDPACK_DIR=`cd $(dirname $0); cd ..; pwd`
 BUILD_DIR=$1
 CACHE_DIR=$2
 
-SITE_DIR=$BUILD_DIR/site
+SITE_DIR=$CACHE_DIR/site
+OUTPUT_DIR=$CACHE_DIR/output
 GEM_DIR=$CACHE_DIR/vendor/bundle
 
 # include .files when moving things around
@@ -27,9 +28,9 @@ shopt -s dotglob
 cd $BUILD_DIR
 
 # move site directory to site dir
-mkdir -p $CACHE_DIR/site
-mv * $CACHE_DIR/site
-mv $CACHE_DIR/site .
+rm -rf $SITE_DIR/*
+mkdir -p $SITE_DIR
+mv * $SITE_DIR
 
 # put the Procfile back :)
 if [ -f $SITE_DIR/Procfile ]; then
@@ -55,7 +56,7 @@ for var in \`env|cut -f1 -d=\`; do
 done
 touch /app/$APACHE_PATH/logs/{error,access}_log
 tail -F /app/$APACHE_PATH/logs/{error,access}_log &
-export LD_LIBRARY_PATH=/app/$PHP_PATH/ext PHP_INI_SCAN_DIR=/app/site/output
+export LD_LIBRARY_PATH=/app/$PHP_PATH/ext PHP_INI_SCAN_DIR=/app/output
 echo "Launching apache"
 exec /app/$APACHE_PATH/bin/httpd -DNO_DETACH
 EOF
@@ -91,5 +92,14 @@ $GEM_DIR/bin/bundle install --deployment --path $GEM_DIR | grep 'Installing' | i
 
 echo "-----> Compiling nanoc site"
 
+# set up nanoc config
+cat << EOF >> $SITE_DIR/config.yaml
+output_dir: $OUTPUT_DIR
+enable_output_diff: false
+EOF
+
 # go go gadget nanoc!
 $GEM_DIR/bin/bundle exec nanoc compile | indent
+
+# and copy it back
+cp -r $OUTPUT_DIR $BUILD_DIR/output
