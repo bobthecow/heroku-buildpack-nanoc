@@ -1,9 +1,13 @@
 #!/bin/sh
 
 # this pack is valid for apps with config.yml and Rules in the root
-if [ -f $1/config.yaml ] && [ -f $1/Rules ]; then
-  echo "nanoc"
-  exit 0
-else
-  exit 1
+if [ -f "$1/config.yaml" ]; then
+  for file in Rules rules Rules.rb rules.rb; do
+    if [ -f "$1/$file" ]; then
+      echo "nanoc"
+      exit 0
+    fi
+  done
 fi
+
+exit 1
