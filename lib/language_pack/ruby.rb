@@ -56,9 +56,7 @@ class LanguagePack::Ruby < LanguagePack::Base
     allow_git do
       install_language_pack_gems
       build_bundler
-      create_database_yml
       install_binaries
-      run_assets_precompile_rake_task
     end
   end
 

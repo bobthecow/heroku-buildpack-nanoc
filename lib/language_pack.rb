@@ -9,7 +9,9 @@ module LanguagePack
   def self.detect(*args)
     Dir.chdir(args.first)
 
-    pack = [ Rails3, Rails2, Rack, Ruby ].detect do |klass|
+    # For now there's only one, since this handles both the generic case and the
+    # custom Rack config case...
+    pack = [ Nanoc ].detect do |klass|
       klass.use?
     end
 
@@ -18,8 +20,4 @@ module LanguagePack
 
 end
 
-require "language_pack/ruby"
-require "language_pack/rack"
-require "language_pack/rails2"
-require "language_pack/rails3"
-
+require "language_pack/nanoc"
