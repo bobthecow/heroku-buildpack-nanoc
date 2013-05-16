@@ -93,7 +93,7 @@ $GEM_DIR/bin/bundle install --deployment --path $GEM_DIR | grep 'Installing' | i
 echo "-----> Compiling nanoc site"
 
 # set up nanoc config
-cat << EOF >> $SITE_DIR/config.yaml
+cat << EOF >> $SITE_DIR/nanoc.yaml
 output_dir: $OUTPUT_DIR
 enable_output_diff: false
 EOF
