@@ -21,6 +21,12 @@ CACHE_DIR=$2
 SITE_DIR=$CACHE_DIR/site
 OUTPUT_DIR=$CACHE_DIR/output
 GEM_DIR=$CACHE_DIR/vendor/bundle
+CONFIG_FILE=$SITE_DIR/nanoc.yaml
+
+# fall back to old-style config.yaml
+if [ ! -f $CONFIG_FILE ]; then
+  CONFIG_FILE=$SITE_DIR/config.yaml
+fi
 
 # include .files when moving things around
 shopt -s dotglob
@@ -93,7 +99,7 @@ $GEM_DIR/bin/bundle install --deployment --path $GEM_DIR | grep 'Installing' | i
 echo "-----> Compiling nanoc site"
 
 # set up nanoc config
-cat << EOF >> $SITE_DIR/nanoc.yaml
+cat << EOF >> $CONFIG_FILE
 output_dir: $OUTPUT_DIR
 enable_output_diff: false
 EOF
