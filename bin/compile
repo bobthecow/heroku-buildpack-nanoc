@@ -84,7 +84,7 @@ gempath:
 EOF
 
 # install bundler
-/usr/local/bin/gem install bundler > /dev/null
+/usr/bin/env gem install bundler > /dev/null
 
 cd $SITE_DIR
 
