@@ -19,7 +19,7 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 
 SITE_DIR=$CACHE_DIR/site
-OUTPUT_DIR=$CACHE_DIR/output
+OUTPUT_DIR=$CACHE_DIR/site/output
 GEM_DIR=$CACHE_DIR/vendor/bundle
 CONFIG_FILE=$SITE_DIR/nanoc.yaml
 
