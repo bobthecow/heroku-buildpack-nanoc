@@ -109,7 +109,7 @@ fi
 
 export BUNDLE_GEMFILE=$SITE_DIR/Gemfile
 
-$GEM_DIR/bin/bundle install --deployment --gemfile=$BUNDLE_GEMFILE | indent
+$GEM_DIR/bin/bundle install --deployment --gemfile=$BUNDLE_GEMFILE --path=$GEM_DIR | indent
 
 echo "-----> Compiling nanoc site"
 
