@@ -7,6 +7,8 @@ indent() {
 
 # fail fast
 set -e
+# fail if pipe to indent fails
+set -o pipefail
 
 BUILDPACK_DIR=`cd $(dirname $0); cd ..; pwd`
 BUILD_DIR=$1
@@ -93,6 +95,12 @@ EOF
 
 cd $SITE_DIR
 
+INSTALLED_RUBY=$(ruby -e 'puts "#{RUBY_VERSION}"')
+echo "Detected Ruby version ${INSTALLED_RUBY}, will ignore version specified in Gem or .ruby-version" | indent
+echo "${INSTALLED_RUBY}" > .ruby-version
+sed -i -e "s/^ruby .*/ruby \"${INSTALLED_RUBY}\"/g" Gemfile
+sed -i -e "s/ruby .*/ruby ${INSTALLED_RUBY}/g" Gemfile.lock
+
 # install nanoc
 if [ ! -f $SITE_DIR/Gemfile ]; then
     echo "Gemfile not found" | indent
@@ -101,7 +109,7 @@ fi
 
 export BUNDLE_GEMFILE=$SITE_DIR/Gemfile
 
-$GEM_DIR/bin/bundle install --deployment --gemfile=$SITE_DIR/Gemfile | indent
+$GEM_DIR/bin/bundle install --deployment --gemfile=$BUNDLE_GEMFILE | indent
 
 echo "-----> Compiling nanoc site"
 
