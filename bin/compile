@@ -91,16 +91,7 @@ gempath:
 - $GEM_DIR
 EOF
 
-# install bundler
-/usr/bin/env gem install bundler > /dev/null
-
 cd $SITE_DIR
-
-INSTALLED_RUBY=$(ruby -e 'puts "#{RUBY_VERSION}"')
-echo "Detected Ruby version ${INSTALLED_RUBY}, will ignore version specified in Gem or .ruby-version" | indent
-echo "${INSTALLED_RUBY}" > .ruby-version
-sed -i -e "s/^ruby .*/ruby \"${INSTALLED_RUBY}\"/g" Gemfile
-sed -i -e "s/ruby .*/ruby ${INSTALLED_RUBY}/g" Gemfile.lock
 
 # install nanoc
 if [ ! -f $SITE_DIR/Gemfile ]; then
