@@ -76,13 +76,21 @@ exec $APACHE_PATH/bin/httpd -DNO_DETACH
 EOF
 chmod +x boot.sh
 
-echo "-----> Compiling nanoc site"
+source "/app/.profile.d/ruby.sh"
+
+cd $SITE_DIR
 
 # set up nanoc config
 cat << EOF >> $CONFIG_FILE
 output_dir: $OUTPUT_DIR
 enable_output_diff: false
 EOF
+
+echo "-----> Installing gems for nanoc site"
+
+bundle install
+
+echo "-----> Compiling nanoc site"
 
 # go go gadget nanoc!
 bundle exec nanoc compile | indent
