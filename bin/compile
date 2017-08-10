@@ -76,33 +76,6 @@ exec $APACHE_PATH/bin/httpd -DNO_DETACH
 EOF
 chmod +x boot.sh
 
-
-echo "-----> Installing nanoc"
-
-export LANG=en_US.UTF-8
-export GEM_HOME=$GEM_DIR
-export PATH=$GEM_DIR/bin:$PATH
-
-# set up gemrc
-cat << EOF > ~/.gemrc
-gem: --no-rdoc --no-ri
-gemhome: $GEM_DIR
-gempath:
-- $GEM_DIR
-EOF
-
-cd $SITE_DIR
-
-# install nanoc
-if [ ! -f $SITE_DIR/Gemfile ]; then
-    echo "Gemfile not found" | indent
-    exit 1
-fi
-
-export BUNDLE_GEMFILE=$SITE_DIR/Gemfile
-
-$GEM_DIR/bin/bundle install --deployment --gemfile=$BUNDLE_GEMFILE --path=$GEM_DIR | indent
-
 echo "-----> Compiling nanoc site"
 
 # set up nanoc config
@@ -112,7 +85,7 @@ enable_output_diff: false
 EOF
 
 # go go gadget nanoc!
-$GEM_DIR/bin/bundle exec nanoc compile | indent
+bundle exec nanoc compile | indent
 
 # and copy it back
 cp -r $OUTPUT_DIR $BUILD_DIR/output
