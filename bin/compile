@@ -7,19 +7,21 @@ indent() {
 
 # fail fast
 set -e
-
-# config
-APACHE_VERSION="2.2.22"
-APACHE_PATH="apache"
-PHP_VERSION="5.3.10"
-PHP_PATH="php"
+# fail if pipe to indent fails
+set -o pipefail
 
 BUILDPACK_DIR=`cd $(dirname $0); cd ..; pwd`
 BUILD_DIR=$1
 CACHE_DIR=$2
 
+# config
+APACHE_VERSION="2.4.7"
+APACHE_PATH="apache"
+PHP_VERSION="5.5.9"
+PHP_PATH="php"
+
 SITE_DIR=$CACHE_DIR/site
-OUTPUT_DIR=$CACHE_DIR/output
+OUTPUT_DIR=$CACHE_DIR/site/output
 GEM_DIR=$CACHE_DIR/vendor/bundle
 CONFIG_FILE=$SITE_DIR/nanoc.yaml
 
@@ -43,60 +45,40 @@ if [ -f $SITE_DIR/Procfile ]; then
   mv $SITE_DIR/Procfile $BUILD_DIR
 fi
 
-APACHE_URL="https://s3.amazonaws.com/php-lp/apache-$APACHE_VERSION.tar.gz"
+# Sourced from https://github.com/micwallace/dokku-buildpack-apt-apache-php/blob/1c73a6b3095cc3fc6ce5591a7be00e848501512d/bin/compile
+
+APACHE_URL="https://content.wallaceit.com.au/buildpackassets/apache-$APACHE_VERSION.tar.gz"
 echo "-----> Bundling Apache version $APACHE_VERSION"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
+echo "-----> Apache version $APACHE_VERSION bundled"
 
-PHP_URL="https://s3.amazonaws.com/php-lp/php-$PHP_VERSION.tar.gz"
+PHP_URL="https://content.wallaceit.com.au/buildpackassets/php-$PHP_VERSION.tar.gz"
 echo "-----> Bundling PHP version $PHP_VERSION"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
+echo "-----> PHP version $PHP_VERSION bundled"
 
 # copy config files
+mkdir -p $APACHE_PATH/conf
 cp $BUILDPACK_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $BUILDPACK_DIR/conf/php.ini $PHP_PATH
 
 # add a boot proc
 cat >>boot.sh <<EOF
+mkdir -p /app/$APACHE_PATH/logs
 for var in \`env|cut -f1 -d=\`; do
-  echo "PassEnv \$var" >> /app/$APACHE_PATH/conf/httpd.conf;
+  echo "PassEnv \$var" >> $APACHE_PATH/conf/httpd.conf;
 done
-touch /app/$APACHE_PATH/logs/{error,access}_log
-tail -F /app/$APACHE_PATH/logs/{error,access}_log &
-export LD_LIBRARY_PATH=/app/$PHP_PATH/ext PHP_INI_SCAN_DIR=/app/output
+touch $APACHE_PATH/logs/{error,access}_log
+tail -F $APACHE_PATH/logs/{error,access}_log &
+export LD_LIBRARY_PATH=$PHP_PATH/ext PHP_INI_SCAN_DIR=/app/output
 echo "Launching apache"
-exec /app/$APACHE_PATH/bin/httpd -DNO_DETACH
+exec $APACHE_PATH/bin/httpd -DNO_DETACH
 EOF
 chmod +x boot.sh
 
-
-echo "-----> Installing nanoc"
-
-export LANG=en_US.UTF-8
-export GEM_HOME=$GEM_DIR
-export PATH=$GEM_DIR/bin:$PATH
-
-# set up gemrc
-cat << EOF > ~/.gemrc
-gem: --no-rdoc --no-ri
-gemhome: $GEM_DIR
-gempath:
-- $GEM_DIR
-EOF
-
-# install bundler
-/usr/bin/env gem install bundler > /dev/null
+source "/app/.profile.d/ruby.sh"
 
 cd $SITE_DIR
-
-# install nanoc
-if [ ! -f $SITE_DIR/Gemfile ]; then
-    echo "Gemfile not found" | indent
-    exit 1
-fi
-
-$GEM_DIR/bin/bundle install --deployment --path $GEM_DIR | grep 'Installing' | indent
-
-echo "-----> Compiling nanoc site"
 
 # set up nanoc config
 cat << EOF >> $CONFIG_FILE
@@ -104,8 +86,14 @@ output_dir: $OUTPUT_DIR
 enable_output_diff: false
 EOF
 
+echo "-----> Installing gems for nanoc site"
+
+bundle install
+
+echo "-----> Compiling nanoc site"
+
 # go go gadget nanoc!
-$GEM_DIR/bin/bundle exec nanoc compile | indent
+bundle exec nanoc compile | indent
 
 # and copy it back
 cp -r $OUTPUT_DIR $BUILD_DIR/output

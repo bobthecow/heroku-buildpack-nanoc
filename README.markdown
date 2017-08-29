@@ -16,7 +16,7 @@ Compile and serve a nanoc site on Heroku.
     git init
     git add .
     git commit -m "initial commit"
-    heroku create -s cedar --buildpack https://github.com/bobthecow/heroku-buildpack-nanoc.git
+    heroku create -s cedar --buildpack https://github.com/campeterson/heroku-buildpack-nanoc.git
     git push heroku master
 
 
